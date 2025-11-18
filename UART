@@ -1,0 +1,48 @@
+int main(){
+char msg[] = "Hei";
+hw_init_uart(F_CPU/16/4800-1);
+
+  while (1){
+  ;
+    char a = hw_receive_uart();
+    
+    if (a){
+    hw_send_char(a);
+    }
+
+  }
+  
+
+  return 0;
+}
+
+void hw_send_uart(char* data){
+ 
+  while (*data){
+    UDR0 = *data;
+    while ( !( UCSR0A & (0x1<<UDRE0)));
+    ++data;
+  }
+}
+void hw_send_char(char data){
+ 
+    UDR0 = data;
+    while ( !( UCSR0A & (0x1<<UDRE0)));
+  
+}
+
+char hw_receive_uart(){
+
+  if (UCSR0A&(0x1<<RXC0)){
+    return UDR0;
+  }
+  return 0;
+}
+
+void hw_init_uart(uint16_t speed){
+const uint16_t ubrr = speed; //lasketaan ubrr rekisterin arvo cpu-nopeuden ja halutun baud-nopeuden avulla
+  UBRR0H = (unsigned char)(ubrr>>8); //asetetaan 16bittisen luvun 8 ylintä bittiä USART baud rate n register high byte rekisteriin
+  UBRR0L = (unsigned char)ubrr; // asetetaan 16bittisen luvun 8 alinta bittiä USART baud rate n register low byte rekisteriin
+  UCSR0B = (0x1<<TXEN0) | (0x1<<RXEN0); //aktivoidaan lähetys TX
+  UCSR0C = (0x1<<USBS0) | (0x03<<UCSZ00); // asetetaan frame formaatti : 2 stop bittiä, 8 data bittiä
+}
